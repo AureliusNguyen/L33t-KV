@@ -43,7 +43,7 @@ export function Hero() {
           className="lg:col-start-2 lg:row-start-1 lg:row-span-2 m-0"
         >
           <div
-            className="flex items-baseline justify-between gap-4 small mono mb-3"
+            className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-4 small mono mb-3"
             style={{ color: "var(--color-ink-muted)" }}
           >
             <span>class leaderboard, final ranking</span>

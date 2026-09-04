@@ -2,7 +2,10 @@
 
 import { Hero } from "@/components/Hero";
 import { ReadingProgress } from "@/components/ReadingProgress";
-import { BackgroundLines } from "@/components/BackgroundLines";
+// Background: <Background /> renders the looping video by default with a
+// sticky top-right toggle back to the SVG line sweeps. To hard-pin one
+// or the other, import BackgroundLines or BackgroundVideo directly.
+import { Background } from "@/components/Background";
 import {
   DualColumn,
   type SectionId,
@@ -234,7 +237,7 @@ export default function Home() {
 
   return (
     <main className="relative min-h-screen">
-      <BackgroundLines />
+      <Background />
       <div className="grain" aria-hidden />
       <ReadingProgress />
 

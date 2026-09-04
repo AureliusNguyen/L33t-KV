@@ -47,6 +47,13 @@ input[type="range"] {
   cursor: pointer;
 }
 
+@media (hover: hover) {
+  .bg-toggle:hover {
+    color: var(--color-cyan);
+    border-color: color-mix(in oklab, var(--color-cyan) 55%, transparent);
+  }
+}
+
 .grain {
   position: fixed;
   inset: 0;
@@ -222,6 +229,84 @@ input[type="range"] {
   background-size: 100% 1px;
 }
 
+/* Trade-off checklist rows. Resting and checked colors here, plus a
+   hover glow that lights the row, its checkbox, marker dot and title
+   before anything is clicked. Cyan for features L33T KV has, warm ink
+   for the ones it lacks. Hover rules are gated on hover-capable
+   pointers so touch devices keep the plain checked/unchecked states. */
+.tradeoff-row {
+  border-top: 1px solid var(--color-rule);
+  transition:
+    border-color 220ms ease-out,
+    background-color 220ms ease-out,
+    box-shadow 220ms ease-out;
+}
+.tradeoff-row[data-on="true"][data-accent="cyan"] {
+  border-top-color: var(--color-cyan);
+}
+.tradeoff-row[data-on="true"][data-accent="dim"] {
+  border-top-color: var(--color-ink-dim);
+}
+.tradeoff-title {
+  color: var(--color-ink);
+  transition:
+    color 200ms ease-out,
+    text-shadow 220ms ease-out;
+}
+.tradeoff-row[data-on="true"] .tradeoff-title {
+  color: var(--color-cyan);
+}
+.tradeoff-check {
+  border-color: var(--color-rule);
+  transition:
+    border-color 200ms ease-out,
+    background-color 200ms ease-out,
+    box-shadow 220ms ease-out;
+}
+.tradeoff-dot {
+  transition: box-shadow 220ms ease-out;
+}
+
+@media (hover: hover) {
+  .tradeoff-row[data-accent="cyan"]:hover {
+    border-top-color: var(--color-cyan);
+    background-color: rgba(95, 217, 245, 0.05);
+    box-shadow:
+      0 0 0 1px rgba(95, 217, 245, 0.18),
+      0 12px 40px -14px rgba(95, 217, 245, 0.55);
+  }
+  .tradeoff-row[data-accent="cyan"]:hover .tradeoff-title {
+    color: var(--color-cyan);
+    text-shadow: 0 0 14px rgba(95, 217, 245, 0.6);
+  }
+  .tradeoff-row[data-accent="cyan"]:hover .tradeoff-check {
+    border-color: var(--color-cyan);
+    box-shadow: 0 0 14px rgba(95, 217, 245, 0.55);
+  }
+  .tradeoff-row[data-accent="cyan"]:hover .tradeoff-dot {
+    box-shadow: 0 0 10px rgba(95, 217, 245, 0.8);
+  }
+
+  .tradeoff-row[data-accent="dim"]:hover {
+    border-top-color: var(--color-ink-dim);
+    background-color: rgba(235, 226, 207, 0.04);
+    box-shadow:
+      0 0 0 1px rgba(235, 226, 207, 0.14),
+      0 12px 40px -14px rgba(235, 226, 207, 0.4);
+  }
+  .tradeoff-row[data-accent="dim"]:hover .tradeoff-title {
+    color: var(--color-ink);
+    text-shadow: 0 0 14px rgba(235, 226, 207, 0.5);
+  }
+  .tradeoff-row[data-accent="dim"]:hover .tradeoff-check {
+    border-color: var(--color-ink-dim);
+    box-shadow: 0 0 14px rgba(235, 226, 207, 0.4);
+  }
+  .tradeoff-row[data-accent="dim"]:hover .tradeoff-dot {
+    box-shadow: 0 0 10px rgba(235, 226, 207, 0.6);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -229,7 +314,8 @@ input[type="range"] {
     animation-duration: 0s !important;
     transition-duration: 0s !important;
   }
-  .bg-lines {
+  .bg-lines,
+  .bg-video {
     display: none;
   }
 }

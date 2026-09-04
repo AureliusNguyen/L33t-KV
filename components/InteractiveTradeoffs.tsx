@@ -241,32 +241,28 @@ export function InteractiveTradeoffs() {
               aria-pressed={isOn}
               className="w-full text-left group focus:outline-none"
             >
+              {/* Colors and the hover glow live in globals.css under
+                  .tradeoff-row so hover can drive them; inline styles
+                  would win over :hover rules. */}
               <div
-                className="grid grid-cols-[28px_1fr] sm:grid-cols-[28px_minmax(200px,260px)_1fr] gap-x-4 gap-y-1 items-start border-t border-[var(--color-rule)] py-3 transition-colors"
-                style={{
-                  borderTopColor: isOn
-                    ? f.supported
-                      ? "var(--color-cyan)"
-                      : "var(--color-ink-dim)"
-                    : "var(--color-rule)",
-                }}
+                className="tradeoff-row grid grid-cols-[28px_1fr] sm:grid-cols-[28px_minmax(200px,260px)_1fr] gap-x-4 gap-y-1 items-start py-3 px-3 -mx-3"
+                data-on={isOn ? "true" : "false"}
+                data-accent={f.supported ? "cyan" : "dim"}
               >
                 <Checkbox checked={isOn} accent={f.supported} />
                 <div className="flex items-start gap-2 min-w-0">
                   <span
                     aria-hidden
-                    className="inline-block w-2 h-2 mt-[6px] shrink-0 border"
+                    className="tradeoff-dot inline-block w-2 h-2 mt-[6px] shrink-0 border"
                     style={{
                       background: dotColor,
                       borderColor: dotBorder,
                     }}
                   />
                   <div
-                    className="mono-data uppercase tracking-wider leading-snug"
+                    className="tradeoff-title mono-data uppercase tracking-wider leading-snug"
                     style={{
-                      color: isOn ? "var(--color-cyan)" : "var(--color-ink)",
                       letterSpacing: "0.08em",
-                      transition: "color 200ms ease-out",
                       wordBreak: "break-word",
                     }}
                   >
@@ -393,9 +389,9 @@ function Checkbox({
   const fillColor = accent ? "var(--color-cyan)" : "var(--color-ink-dim)";
   return (
     <div
-      className="relative h-5 w-5 mt-[2px] shrink-0 border transition-colors"
+      className="tradeoff-check relative h-5 w-5 mt-[2px] shrink-0 border"
       style={{
-        borderColor: checked ? fillColor : "var(--color-rule)",
+        borderColor: checked ? fillColor : undefined,
         background: checked ? fillColor : "transparent",
       }}
     >
