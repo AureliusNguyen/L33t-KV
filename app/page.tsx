@@ -54,7 +54,6 @@ export default function Home() {
         <ProseSection
           heading="The setup"
           lede="A 19-byte binary instead of human-readable text."
-          inlineArtifact={<InteractiveSetup active />}
         >
           <p className="body">
             A key-value store is a brutally simple thing. Two verbs:
@@ -69,9 +68,9 @@ export default function Home() {
             machine. Humans don&apos;t need to read it.
           </p>
           <p className="body" style={{ color: "var(--color-ink-dim)" }}>
-            Try it. The panel on the right runs your command through the
-            same WASM-compiled parser the server uses. Click Run and watch
-            it break the bytes apart.
+            Try it. The panel beside this text, or below it on a phone,
+            runs your command through the same WASM-compiled parser the
+            server uses. Click Run and watch it break the bytes apart.
           </p>
         </ProseSection>
       ),
@@ -83,7 +82,6 @@ export default function Home() {
           number="01"
           heading="Python asyncio"
           lede="The reference baseline. Whatever you do next, you compare against this."
-          inlineArtifact={<ReplayTerminal lines={PYTHON_LINES} />}
         >
           <p className="body">
             Vanilla asyncio, dict-backed store, one server per port behind
@@ -108,7 +106,6 @@ export default function Home() {
           number="02"
           heading="uvloop + tightened Python"
           lede="Swap the event loop. Cache the struct. Local-bind the hot-path globals."
-          inlineArtifact={<ReplayTerminal lines={UVLOOP_LINES} />}
         >
           <p className="body">
             uvloop swaps asyncio&apos;s event loop for one built on
@@ -137,7 +134,6 @@ export default function Home() {
           number="03"
           heading="C epoll"
           lede="Hand-written hashtable. Edge-triggered epoll, drain to EAGAIN. No allocator surprises."
-          inlineArtifact={<WasmRttSlider active />}
         >
           <p className="body">
             The server is about four hundred lines of C. The hash table
@@ -159,10 +155,11 @@ export default function Home() {
           </p>
           <p className="body" style={{ color: "var(--color-ink-dim)" }}>
             From here on, tightening server code does almost nothing. The
-            bottleneck has moved off-chip. Drag the slider on the right.
-            The throughput number is computed from real CPU cost measured
-            in a WASM build of the same hashtable, plus whatever RTT you
-            dial in. Watch what dominates as you change just the network.
+            bottleneck has moved off-chip. Drag the RTT slider in the
+            panel. It starts at the lab&apos;s eighty microseconds and the
+            throughput number is computed from real CPU cost measured in
+            a WASM build of the same hashtable, plus whatever RTT you dial
+            in. Watch what dominates as you change just the network.
           </p>
         </ProseSection>
       ),
@@ -174,7 +171,6 @@ export default function Home() {
           number="04"
           heading="io_uring"
           lede="The fancy thing that gave nothing."
-          inlineArtifact={<IoUringNullResult active />}
         >
           <p className="body">
             Same hashtable, same protocol. Replace epoll with io_uring. Try
@@ -201,7 +197,6 @@ export default function Home() {
           number="05"
           heading="The comparison: Redis 6.0"
           lede="Same lab, same wire, same workload shape. Different protocol, different server."
-          inlineArtifact={<ValueSweepChart active />}
         >
           <p className="body">
             Three Redis instances run on the same host with persistence
@@ -251,6 +246,51 @@ export default function Home() {
         </div>
 
         <DualColumn sections={sections} artifacts={artifacts} />
+
+        <div className="max-w-[1280px] mx-auto px-6 sm:px-12 lg:px-16">
+          <div className="rule my-20 sm:my-28 lg:my-32" />
+        </div>
+
+        <section className="max-w-[940px] mx-auto px-6 sm:px-12 lg:px-16 mb-28 sm:mb-40">
+          <RevealOnScroll>
+            <h2
+              className="display-2 mb-8"
+              style={{ textWrap: "balance" }}
+            >
+              Ranked 1/40 grad students.
+            </h2>
+            <p className="body mb-6 max-w-[760px]">
+              The store was the final project in a graduate Cloud
+              Computing class, run as a KV store design competition.
+              Forty grad students in twelve teams, one benchmark on the
+              same lab. L33T KV finished first at 36,200 ops per second:
+              thirty-four percent ahead of second place, and roughly
+              four times the median team.
+            </p>
+            <p className="body mb-10 max-w-[760px]" style={{ color: "var(--color-ink-dim)" }}>
+              Second place ran at 27,000. Third at 15,000. Below that the
+              field drops into the low thousands, mostly stores that
+              never got the network out of the way.
+            </p>
+          </RevealOnScroll>
+          <RevealOnScroll delay={0.05}>
+            <div className="border border-[var(--color-rule)] bg-[var(--color-midnight-2)] p-4 sm:p-6 scanlines">
+              <pre className="mono-body leading-relaxed whitespace-pre-wrap">
+                <span style={{ color: "var(--color-ink-muted)" }}>root@l33t:~$ </span>
+                <span>cat leaderboard.txt</span>
+                {"\n\n"}
+                <span style={{ color: "var(--color-ink-dim)" }}>rank         </span>
+                <span style={{ color: "var(--color-cyan)" }}>1/40 grad students</span>
+                {"\n"}
+                <span style={{ color: "var(--color-ink-dim)" }}>throughput   36,200 ops/sec</span>
+                {"\n"}
+                <span style={{ color: "var(--color-ink-dim)" }}>avg latency  0.08 ms</span>
+                {"\n"}
+                <span style={{ color: "var(--color-ink-dim)" }}>lead on 2nd  +34%</span>
+              </pre>
+            </div>
+          </RevealOnScroll>
+        </section>
 
         <div className="max-w-[1280px] mx-auto px-6 sm:px-12 lg:px-16">
           <div className="rule my-20 sm:my-28 lg:my-32" />
@@ -313,36 +353,6 @@ export default function Home() {
               </Lesson>
             </RevealOnScroll>
           </div>
-        </section>
-
-        <section className="max-w-[940px] mx-auto px-6 sm:px-12 lg:px-16 mb-20 sm:mb-28">
-          <RevealOnScroll>
-            <h3 className="h2 mb-6">Postscript: a class win.</h3>
-            <p className="body mb-8" style={{ color: "var(--color-ink-dim)" }}>
-              The store was the final project in a graduate Cloud
-              Computing class. Twelve teams ran the benchmark on the
-              same lab. We took first place at 36,200 ops per second:
-              thirty-four percent ahead of second, and roughly four
-              times the median team.
-            </p>
-          </RevealOnScroll>
-          <RevealOnScroll>
-            <figure className="border border-[var(--color-rule)] bg-white p-2 sm:p-3 max-w-[760px] mx-auto">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/leaderboard.png"
-                alt="Class leaderboard with our team in first place at 36,200 ops/sec, 0.08 ms average latency"
-                loading="lazy"
-                className="w-full h-auto block"
-              />
-              <figcaption
-                className="mono small mt-2 px-2 pb-1"
-                style={{ color: "#6a6a6a" }}
-              >
-                graduate Cloud Computing class, final ranking
-              </figcaption>
-            </figure>
-          </RevealOnScroll>
         </section>
 
         <section className="max-w-[1040px] mx-auto px-6 sm:px-12 lg:px-16 pb-20 sm:pb-28 text-center">

@@ -35,6 +35,18 @@ body {
   color: var(--color-midnight);
 }
 
+/* Keyboard focus in the page's own accent instead of the browser's
+   blue ring. Mouse and touch never trigger :focus-visible. */
+:focus-visible {
+  outline: 1px solid var(--color-cyan);
+  outline-offset: 3px;
+}
+
+input[type="range"] {
+  accent-color: var(--color-cyan);
+  cursor: pointer;
+}
+
 .grain {
   position: fixed;
   inset: 0;

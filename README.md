@@ -24,6 +24,9 @@ benchmark:
 
 - **Beat Redis 6.0 by 1.6 percent** on a 3-node LAN benchmark (36,234 vs
   35,670 ops/sec, value sizes 8 B - 4 KB).
+- **Ranked 1/40 grad students in the class KV store competition.**
+  Same benchmark on the same lab: 36,200 ops/sec, 34 percent ahead of
+  second place. The leaderboard is on the site.
 - **Then learned that the network was the actual bottleneck the whole
   time.** At 80 microsec of LAN RTT against 5 microsec of CPU per op,
   most of my "optimizations" were rearranging margins on a number

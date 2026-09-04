@@ -49,7 +49,7 @@ export function ValueSweepChart({ active }: { active?: boolean }) {
         className="small mono mb-3"
         style={{ color: "var(--color-ink-muted)" }}
       >
-        throughput by value size (ops/sec, higher is better)
+        throughput by value size (ops/sec)
       </div>
 
       <div

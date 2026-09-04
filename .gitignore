@@ -53,3 +53,6 @@ wasm-src/.deps
 # scaffold artifacts we don't want in the repo
 AGENTS.md
 CLAUDE.md
+
+# impeccable product context (local only)
+PRODUCT.md

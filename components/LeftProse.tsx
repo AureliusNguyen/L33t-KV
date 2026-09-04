@@ -8,33 +8,30 @@ export function ProseSection({
   heading,
   lede,
   children,
-  inlineArtifact,
 }: {
   number?: string;
   heading: string;
   lede?: string;
   children: ReactNode;
-  inlineArtifact?: ReactNode;
 }) {
   return (
     <section className="relative">
+      {/* Decorative ceiling numeral. On phones the artifact for the
+          previous section sits directly above, so the numeral hangs
+          lower there to stay clear of that box. */}
       {number && (
         <span
           aria-hidden
-          className="numeric-anchor absolute select-none"
-          style={{ left: -32, top: -120 }}
+          className="numeric-anchor absolute select-none -left-2 -top-16 lg:-left-8 lg:-top-[120px]"
         >
           {number}
         </span>
       )}
-      <h2 className="display-2 relative">{heading}</h2>
+      <h2 className="display-2 relative" style={{ textWrap: "balance" }}>
+        {heading}
+      </h2>
       {lede && <p className="lede mt-4 relative">{lede}</p>}
       <div className="mt-8 space-y-6 relative">{children}</div>
-      {inlineArtifact && (
-        <div className="mt-10 lg:hidden h-[clamp(440px,72vh,620px)]">
-          {inlineArtifact}
-        </div>
-      )}
     </section>
   );
 }

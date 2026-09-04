@@ -170,8 +170,13 @@ export function DualColumn({ sections, artifacts }: Props) {
                 >
                   {s.node}
                 </div>
+                {/* Phone layout: the artifact sits directly under its
+                    prose, fully revealed (progress 1), sized to its
+                    content instead of the desktop stage height so a
+                    six-line terminal does not leave a screenful of
+                    empty box. */}
                 {isMobile && (
-                  <div className="mt-8 h-[520px]">
+                  <div className="mt-10 min-h-[260px]">
                     {artifacts[s.id]({ progress: 1, active: true })}
                   </div>
                 )}

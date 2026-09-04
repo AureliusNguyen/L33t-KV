@@ -11,14 +11,35 @@ const CLIENTS = 3;
 const VALUE_SIZE_BYTES = 8;
 const LINK_GBIT = 1; // 1 Gbit assumed link speed
 
+// The slider is logarithmic. Loopback lives around ten microseconds,
+// a lab LAN around eighty, a cloud region in the low milliseconds and a
+// coast-to-coast link near sixty. A linear track in milliseconds put
+// the whole interesting region (everything under a millisecond) inside
+// the first pixel, so the default could never show the headline number.
+const RTT_MIN_US = 10;
+const RTT_MAX_US = 200_000;
+const DEFAULT_RTT_US = 80;
+const SLIDER_STEPS = 1000;
+const LOG_RANGE = Math.log(RTT_MAX_US / RTT_MIN_US);
+
+function sliderToUs(v: number): number {
+  return RTT_MIN_US * Math.exp((v / SLIDER_STEPS) * LOG_RANGE);
+}
+function usToSlider(us: number): number {
+  return Math.round((Math.log(us / RTT_MIN_US) / LOG_RANGE) * SLIDER_STEPS);
+}
+
+const PRESETS: { label: string; us: number }[] = [
+  { label: "loopback", us: 10 },
+  { label: "lab LAN", us: 80 },
+  { label: "cloud region", us: 2_000 },
+  { label: "coast to coast", us: 60_000 },
+];
+
 export function WasmRttSlider({ active }: { active?: boolean }) {
   const [core, setCore] = useState<CoreHandle | null>(null);
   const [cpuUs, setCpuUs] = useState<number | null>(null);
-  // Floor at 1 ms - at 0 the formula divides by tiny numbers and gives
-  // implausible throughput (15M ops/sec) that distracts from the point.
-  const [rttMs, setRttMs] = useState(80);
-  const RTT_MIN = 1;
-  const RTT_MAX = 200;
+  const [slider, setSlider] = useState(() => usToSlider(DEFAULT_RTT_US));
   const [pulse, setPulse] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const pulseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -55,13 +76,15 @@ export function WasmRttSlider({ active }: { active?: boolean }) {
     return (bytesPerOp * 8) / (LINK_GBIT * 1000);
   }, []);
 
-  const rttUs = rttMs * 1000;
-  const totalUs = (cpuUs ?? 5) + bandwidthUs + rttUs;
+  const rttUs = sliderToUs(slider);
+  const cpu = cpuUs ?? 5;
+  const totalUs = cpu + bandwidthUs + rttUs;
   const throughput = Math.round((CLIENTS / totalUs) * 1e6);
-  const bottleneck = pickBottleneck(cpuUs ?? 5, bandwidthUs, rttUs);
+  const bottleneck = pickBottleneck(cpu, bandwidthUs, rttUs);
+  const ready = core !== null && cpuUs !== null;
 
-  function onRttChange(v: number) {
-    setRttMs(v);
+  function setRtt(v: number) {
+    setSlider(v);
     setPulse(true);
     if (pulseTimer.current) clearTimeout(pulseTimer.current);
     pulseTimer.current = setTimeout(() => setPulse(false), 180);
@@ -69,7 +92,7 @@ export function WasmRttSlider({ active }: { active?: boolean }) {
 
   return (
     <div
-      className={`relative h-full overflow-auto border bg-[var(--color-midnight-2)] p-6 transition-colors ${
+      className={`relative h-full overflow-auto border bg-[var(--color-midnight-2)] p-5 sm:p-6 transition-colors ${
         active
           ? "border-[color:var(--color-cyan)]/40"
           : "border-[var(--color-rule)]"
@@ -102,34 +125,57 @@ export function WasmRttSlider({ active }: { active?: boolean }) {
         drag the RTT - watch what dominates
       </div>
 
-      <div className="my-6">
+      <div className="my-5">
         <div
           className="flex justify-between small mono"
           style={{ color: "var(--color-ink-muted)" }}
         >
-          <span>RTT {RTT_MIN} ms</span>
-          <span>{RTT_MAX} ms</span>
+          <span>{formatRtt(RTT_MIN_US)}</span>
+          <span>{formatRtt(RTT_MAX_US)}</span>
         </div>
         <input
           type="range"
-          min={RTT_MIN}
-          max={RTT_MAX}
+          min={0}
+          max={SLIDER_STEPS}
           step={1}
-          value={rttMs}
-          onChange={(e) => onRttChange(Number(e.target.value))}
-          className="w-full mt-1"
-          style={{ accentColor: "var(--color-cyan)" }}
-          aria-label="Round-trip time in milliseconds"
+          value={slider}
+          onChange={(e) => setRtt(Number(e.target.value))}
+          className="w-full mt-1 h-8"
+          aria-label="Round-trip time"
+          aria-valuetext={formatRtt(rttUs)}
         />
         <div
           className="mono-data mt-1 text-center"
           style={{ color: "var(--color-cyan)" }}
         >
-          {rttMs} ms
+          RTT {formatRtt(rttUs)}
         </div>
       </div>
 
-      <div className="my-8">
+      <div className="flex flex-wrap gap-2 mb-6">
+        {PRESETS.map((p) => {
+          const isCurrent = Math.abs(rttUs - p.us) / p.us < 0.03;
+          return (
+            <button
+              key={p.label}
+              type="button"
+              onClick={() => setRtt(usToSlider(p.us))}
+              aria-pressed={isCurrent}
+              className="mono-data text-xs px-2.5 py-1.5 border transition-colors hover:border-[color:var(--color-cyan)]/40"
+              style={{
+                color: isCurrent ? "var(--color-cyan)" : "var(--color-ink-muted)",
+                borderColor: isCurrent
+                  ? "color-mix(in oklab, var(--color-cyan) 40%, transparent)"
+                  : "var(--color-rule)",
+              }}
+            >
+              {p.label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="my-6">
         <div
           className="small mono mb-2"
           style={{ color: "var(--color-ink-muted)" }}
@@ -144,7 +190,7 @@ export function WasmRttSlider({ active }: { active?: boolean }) {
             fontVariationSettings: "\"opsz\" 144",
           }}
         >
-          {core && cpuUs !== null ? throughput.toLocaleString() : "----"}
+          {ready ? throughput.toLocaleString() : "----"}
           <span
             className="mono-data ml-3"
             style={{ color: "var(--color-ink-muted)" }}
@@ -155,31 +201,35 @@ export function WasmRttSlider({ active }: { active?: boolean }) {
       </div>
 
       <div
-        className="small mono mt-6 mb-2"
+        className="small mono mt-6 mb-3"
         style={{ color: "var(--color-ink-muted)" }}
       >
         per-op time = cpu + bandwidth + RTT. only RTT changes.
       </div>
 
-      <table className="w-full mono-data">
-        <tbody>
-          <Row
-            label="cpu work"
-            value={cpuUs !== null ? `${(cpuUs / 1000).toFixed(5)} ms` : "(loading)"}
-            note="measured once in WASM (constant)"
-          />
-          <Row
-            label="bandwidth"
-            value={`${(bandwidthUs / 1000).toFixed(5)} ms`}
-            note={`${VALUE_SIZE_BYTES} B value at ${LINK_GBIT} Gbit (constant)`}
-          />
-          <Row
-            label="network RTT"
-            value={`${rttMs.toFixed(0)} ms`}
-            note="you control this"
-          />
-        </tbody>
-      </table>
+      <div className="mono-data divide-y divide-[var(--color-rule)]">
+        <Row
+          label="cpu work"
+          value={cpuUs !== null ? formatUs(cpuUs) : "(loading)"}
+          note="measured once in WASM (constant)"
+        />
+        <Row
+          label="bandwidth"
+          value={formatUs(bandwidthUs)}
+          note={`${VALUE_SIZE_BYTES} B value at ${LINK_GBIT} Gbit (constant)`}
+        />
+        <Row
+          label="network RTT"
+          value={formatUs(rttUs)}
+          note="you control this"
+          accent
+        />
+        <Row
+          label="per op"
+          value={ready ? formatUs(totalUs) : "(loading)"}
+          note={`${CLIENTS} clients, one op in flight each`}
+        />
+      </div>
 
       <div className="mt-5 small mono">
         <span style={{ color: "var(--color-ink-muted)" }}>bottleneck: </span>
@@ -202,25 +252,55 @@ function Row({
   label,
   value,
   note,
+  accent = false,
 }: {
   label: string;
   value: string;
   note: string;
+  accent?: boolean;
 }) {
   return (
-    <tr>
-      <td className="py-1" style={{ color: "var(--color-ink-muted)" }}>
-        {label}
-      </td>
-      <td className="py-1 text-right">{value}</td>
-      <td
-        className="py-1 pl-4 small"
+    <div className="py-2">
+      <div className="flex items-baseline justify-between gap-4">
+        <span style={{ color: "var(--color-ink-muted)" }}>{label}</span>
+        <span
+          className="tabular-nums text-right"
+          style={{ color: accent ? "var(--color-cyan)" : "var(--color-ink)" }}
+        >
+          {value}
+        </span>
+      </div>
+      <div
+        className="small mt-0.5"
         style={{ color: "var(--color-ink-muted)" }}
       >
         {note}
-      </td>
-    </tr>
+      </div>
+    </div>
   );
+}
+
+/** Slider readout: whole microseconds below a millisecond, ms above. */
+function formatRtt(us: number): string {
+  if (us < 1000) return `${Math.round(us)} microsec`;
+  const ms = us / 1000;
+  return `${trimZero(ms.toFixed(ms < 10 ? 1 : 0))} ms`;
+}
+
+/**
+ * Table readout: microseconds in every row so the eye can compare, with
+ * just enough precision to show the two constant rows are not zero.
+ * Trailing ".0" is dropped so the RTT row matches the slider readout.
+ */
+function formatUs(us: number): string {
+  if (us < 1) return `${us.toFixed(2)} microsec`;
+  if (us < 1000) return `${trimZero(us.toFixed(1))} microsec`;
+  const ms = us / 1000;
+  return `${trimZero(ms.toFixed(ms < 10 ? 1 : 0))} ms`;
+}
+
+function trimZero(s: string): string {
+  return s.endsWith(".0") ? s.slice(0, -2) : s;
 }
 
 function pickBottleneck(cpu: number, bw: number, rtt: number): string {

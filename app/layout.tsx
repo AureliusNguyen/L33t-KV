@@ -28,7 +28,7 @@ const plex = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "L33T KV - a custom KV store that beats Redis 6.0",
   description:
-    "L33T KV: a custom binary-protocol key-value store written from scratch in ~400 lines of C. Beats Redis 6.0 on a 3-node lab LAN at 36,234 ops/sec.",
+    "L33T KV: a custom binary-protocol key-value store written from scratch in ~400 lines of C. Beats Redis 6.0 on a 3-node lab LAN at 36,234 ops/sec and ranked 1/40 grad students in a KV store competition.",
 };
 
 export default function RootLayout({

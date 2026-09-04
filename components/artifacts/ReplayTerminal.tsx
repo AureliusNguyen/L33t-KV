@@ -13,6 +13,8 @@ export type TerminalLine = {
   delay?: number;
 };
 
+const NOT_STARTED = Symbol("not-started");
+
 type Props = {
   lines: TerminalLine[];
   /** Characters typed per second when auto-typing. */
@@ -46,7 +48,10 @@ export function ReplayTerminal({
     lines.map(() => "")
   );
   const [autoActiveLine, setAutoActiveLine] = useState(0);
-  const startedRef = useRef<string | number | undefined>(undefined);
+  // Sentinel rather than undefined: with no restartKey supplied, an
+  // undefined initial value would equal the undefined key and the
+  // auto-type effect would bail before typing a single character.
+  const startedRef = useRef<string | number | undefined | symbol>(NOT_STARTED);
 
   // Scroll-driven mode: optional override progress driven by the "play"
   // button. When non-null, the effective progress is the max of the scroll
